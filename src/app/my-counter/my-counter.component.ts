@@ -3,6 +3,9 @@ import { Store, select } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { increment, decrement, reset } from '../counter.actions';
 
+/* Lazy Loading, unreladed to Ngrx */
+import { ViewContainerRef, ComponentFactoryResolver } from '@angular/core';
+
 @Component({
   selector: 'app-my-counter',
   templateUrl: './my-counter.component.html',
@@ -14,7 +17,11 @@ export class MyCounterComponent {
   count$: Observable<number>;
 
   // Import Store type variable and assign to var store
-  constructor(private store: Store<{ count: number }>) {
+  constructor(
+    private store: Store<{ count: number }>,
+    private vcf: ViewContainerRef,
+    private ctr: ComponentFactoryResolver
+    ) {
     // Select is an operator from Ngrx
     this.count$ = store.pipe(select('count'));
   }
@@ -29,6 +36,17 @@ export class MyCounterComponent {
 
   reset() {
     this.store.dispatch(reset());
+  }
+
+  // Lazy Loading Method
+  async getLazyComponent() {
+    // Clear the Ref
+    this.vcf.clear();
+    // Import the component in a constant
+    const { LazyLoadingComponent } = await import('../lazy-loading/lazy-loading.component');
+    this.vcf.createComponent(
+      this.ctr.resolveComponentFactory(LazyLoadingComponent)
+      );
   }
 
 }
